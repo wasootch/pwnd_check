@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="pwnd_check.common/pwnd_check.common.csproj" />
+  <Project Path="pwnd_check/pwnd_check.client.csproj" />
+  <Project Path="pwnd_check.web/pwnd_check.web.csproj" />
+</Solution>

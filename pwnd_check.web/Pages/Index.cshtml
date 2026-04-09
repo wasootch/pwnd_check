@@ -1,0 +1,66 @@
+@page
+@model IndexModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Password Leak Checker</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        h1 { margin-bottom: 24px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; }
+        input[type=text] { width: 100%; padding: 8px; box-sizing: border-box; font-size: 1rem; margin-bottom: 12px; }
+        button { padding: 8px 20px; font-size: 1rem; cursor: pointer; }
+        .result { margin-top: 20px; padding: 16px; background: #f0f0f0; border-radius: 4px; }
+        .result p { margin: 6px 0; }
+        .sha1 { font-family: monospace; font-size: 0.85rem; word-break: break-all; color: #555; }
+    </style>
+</head>
+<body>
+    <h1>Password Leak Checker</h1>
+    <form id="checkForm">
+        <label for="Password">Password</label>
+        <input type="text" id="Password" name="Password" autocomplete="off" />
+        <button type="submit">Check</button>
+    </form>
+
+    <div id="result" style="display:none" class="result">
+        <p id="resultMessage"></p>
+        <p class="sha1"><strong>SHA1:</strong> <span id="sha1Value"></span></p>
+    </div>
+
+    <script>
+        document.getElementById('checkForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = this.querySelector('button');
+            const password = document.getElementById('Password').value;
+            btn.disabled = true;
+            btn.textContent = 'Checking\u2026';
+            try {
+                const response = await fetch('/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const data = await response.json();
+                document.getElementById('resultMessage').textContent = data.found
+                    ? `Password is part of a leak and found ${data.count.toLocaleString()} times.`
+                    : 'Congratulations. Your password was not found in the database.';
+                document.getElementById('sha1Value').textContent = data.sha1;
+                document.getElementById('result').style.display = 'block';
+            } catch (err) {
+                document.getElementById('resultMessage').textContent = 'Error: ' + err.message;
+                document.getElementById('sha1Value').textContent = '';
+                document.getElementById('result').style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Check';
+            }
+        });
+    </script>
+</body>
+</html>
